@@ -1,6 +1,7 @@
 package com.smarttranslator.app.presentation
 
 import android.Manifest
+import android.app.RemoteInput
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -10,9 +11,12 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.wear.input.RemoteInputIntentHelper
+import androidx.wear.input.wearableExtender
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -28,8 +32,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -321,7 +323,24 @@ fun TextScreen(
     onHistory: () -> Unit,
     langLabel: String
 ) {
-    val focusRequester = remember { FocusRequester() }
+    // Launcher para RemoteInput nativo de Wear OS
+    val inputKey = "text_input"
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val bundle = RemoteInput.getResultsFromIntent(result.data ?: return@rememberLauncherForActivityResult)
+        val captured = bundle?.getCharSequence(inputKey)?.toString() ?: return@rememberLauncherForActivityResult
+        onTextChange(captured)
+    }
+
+    fun openKeyboard() {
+        val remoteInput = RemoteInput.Builder(inputKey)
+            .setLabel("Escribe en español...")
+            .build()
+        val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
+        RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
+        launcher.launch(intent)
+    }
 
     Column(
         modifier = Modifier
@@ -330,6 +349,7 @@ fun TextScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Toggle idioma
         Text(
             text = langLabel,
             color = AppColors.AccentBlue,
@@ -346,7 +366,7 @@ fun TextScreen(
 
         Spacer(Modifier.height(10.dp))
 
-        // Campo de texto
+        // Botón para abrir teclado nativo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -357,36 +377,17 @@ fun TextScreen(
                     color = if (text.isNotEmpty()) AppColors.AccentBlue else AppColors.GlassStroke,
                     shape = RoundedCornerShape(12.dp)
                 )
-                .padding(horizontal = 10.dp, vertical = 8.dp)
+                .clickable { openKeyboard() }
+                .padding(horizontal = 10.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center
         ) {
-            BasicTextField(
-                value = text,
-                onValueChange = onTextChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                textStyle = TextStyle(
-                    color = AppColors.TextPrimary,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                ),
-                cursorBrush = SolidColor(AppColors.AccentBlue),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { onTranslate() }),
+            Text(
+                text = if (text.isEmpty()) "Toca para escribir..." else text,
+                color = if (text.isEmpty()) AppColors.TextTertiary else AppColors.TextPrimary,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
                 maxLines = 2,
-                decorationBox = { inner ->
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                        if (text.isEmpty()) {
-                            Text(
-                                "Escribe aquí...",
-                                color = AppColors.TextTertiary,
-                                fontSize = 12.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                        inner()
-                    }
-                }
+                overflow = TextOverflow.Ellipsis
             )
         }
 
@@ -398,15 +399,18 @@ fun TextScreen(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .background(
-                    Brush.horizontalGradient(listOf(Color(0xFF0A84FF), Color(0xFF0050C8)))
+                    if (text.isNotEmpty())
+                        Brush.horizontalGradient(listOf(Color(0xFF0A84FF), Color(0xFF0050C8)))
+                    else
+                        Brush.horizontalGradient(listOf(AppColors.Surface, AppColors.Surface))
                 )
-                .clickable { onTranslate() }
+                .clickable { if (text.isNotEmpty()) onTranslate() }
                 .padding(vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Traducir",
-                color = Color.White,
+                color = if (text.isNotEmpty()) Color.White else AppColors.TextTertiary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -422,8 +426,6 @@ fun TextScreen(
             SmallActionButton(label = "Historial", onClick = onHistory)
         }
     }
-
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
 
 // ── Botón acción pequeño ──────────────────────────────────────

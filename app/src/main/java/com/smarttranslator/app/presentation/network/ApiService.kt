@@ -48,16 +48,27 @@ interface ApiService {
 // ── Singleton Retrofit ────────────────────────────────────────
 
 object RetrofitClient {
-    private const val BASE_URL = "https://capably-professor-effective.ngrok-free.dev/"
+    // Usamos IP directa porque el emulador Wear OS no resuelve DNS externos
+    private const val BASE_URL = "https://18.229.248.167/"
+    private const val NGROK_HOST = "capably-professor-effective.ngrok-free.dev"
 
     val instance: ApiService by lazy {
+        val logging = okhttp3.logging.HttpLoggingInterceptor().apply {
+            level = okhttp3.logging.HttpLoggingInterceptor.Level.BODY
+        }
         val client = okhttp3.OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .addHeader("ngrok-skip-browser-warning", "true")
+                    .addHeader("User-Agent", "SmartTranslator/1.0")
+                    .addHeader("Host", NGROK_HOST)
                     .build()
                 chain.proceed(request)
             }
+            .addInterceptor(logging)
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .hostnameVerifier { _, _ -> true }
             .build()
 
         Retrofit.Builder()

@@ -1,0 +1,19 @@
+# ── Backend ──────────────────────────────────────────────────
+backend/node_modules/
+backend/.env
+
+# ── Android ──────────────────────────────────────────────────
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+app/build/
+app/.cxx/
+*.apk
+*.aab
+
+# ── macOS ─────────────────────────────────────────────────────
+.DS_Store

@@ -56,6 +56,10 @@ class TranslatorViewModel : ViewModel() {
 
     private val _isLoadingHistory = MutableStateFlow(false)
     val isLoadingHistory: StateFlow<Boolean> = _isLoadingHistory.asStateFlow()
+
+    private val _historyError = MutableStateFlow<String?>(null)
+    val historyError: StateFlow<String?> = _historyError.asStateFlow()
+
     fun showError(message: String, canRetry: Boolean = true) {
         _state.value = TranslatorState.Error(message, canRetry)
     }
@@ -129,14 +133,17 @@ class TranslatorViewModel : ViewModel() {
 
     fun loadHistory() {
         _isLoadingHistory.value = true
+        _historyError.value = null
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.instance.getHistory()
                 if (response.success) {
                     _history.value = response.data
+                } else {
+                    _historyError.value = "No se pudo cargar el historial"
                 }
             } catch (_: Exception) {
-                // No mostrar error en historial, simplemente queda vacío
+                _historyError.value = "No se pudo cargar el historial"
             } finally {
                 _isLoadingHistory.value = false
             }

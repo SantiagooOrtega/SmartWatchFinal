@@ -851,3 +851,14 @@ fun KeyboardIcon(size: Dp, color: Color) {
         drawLine(color, Offset(w * 0.3f, h * 0.66f), Offset(w * 0.7f, h * 0.66f), w * 0.08f, StrokeCap.Round)
     }
 }
+
+@Composable
+fun HistoryIcon(size: Dp, color: Color) {
+    Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val stroke = w * 0.09f
+        drawCircle(color, w * 0.42f, center, style = Stroke(stroke))
+        drawLine(color, center, Offset(center.x, w * 0.24f), stroke, StrokeCap.Round)
+        drawLine(color, center, Offset(w * 0.68f, center.y + w * 0.1f), stroke, StrokeCap.Round)
+    }
+}

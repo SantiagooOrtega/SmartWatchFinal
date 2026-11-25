@@ -257,6 +257,27 @@ fun LangChip(from: String, to: String, onClick: () -> Unit) {
     }
 }
 
+// ── Botón circular con icono (48dp = objetivo táctil mínimo en Wear) ──
+@Composable
+fun RoundIconButton(
+    label: String,
+    onClick: () -> Unit,
+    icon: @Composable () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(AppColors.SurfaceHigh)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center
+        ) { icon() }
+        Spacer(Modifier.height(2.dp))
+        Text(label, color = AppColors.TextSecondary, fontSize = 10.sp)
+    }
+}
+
 // ── Pantalla Voz ──────────────────────────────────────────────
 @Composable
 fun VoiceScreen(

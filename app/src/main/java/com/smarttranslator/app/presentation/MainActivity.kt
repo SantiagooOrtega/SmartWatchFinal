@@ -10,6 +10,8 @@ import android.os.Vibrator
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -80,6 +82,8 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: TranslatorViewModel by viewModels()
     private var speechRecognizer: SpeechRecognizer? = null
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
 
     /** Nivel de voz normalizado 0..1, para animar la pantalla "Escuchando". */
     private val voiceLevel = mutableFloatStateOf(0f)
@@ -94,6 +98,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        tts = TextToSpeech(this) { status -> ttsReady = status == TextToSpeech.SUCCESS }
         setContent {
             SmartTranslatorTheme {
                 TranslatorApp(
@@ -101,7 +106,8 @@ class MainActivity : ComponentActivity() {
                     voiceLevel = voiceLevel.floatValue,
                     partialText = partialText.value,
                     onMicClick = { checkAndStartListening() },
-                    onCancelListening = { cancelListening() }
+                    onCancelListening = { cancelListening() },
+                    onSpeak = { text, lang -> speak(text, lang) }
                 )
             }
         }
@@ -168,6 +174,15 @@ class MainActivity : ComponentActivity() {
         speechRecognizer?.startListening(intent)
     }
 
+    /** Lee en voz alta la traducción con el motor de voz del reloj. */
+    private fun speak(text: String, lang: String) {
+        val engine = tts ?: return
+        if (!ttsReady) return
+        val locale = if (lang == "EN") Locale.US else Locale("es", "ES")
+        if (engine.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) engine.language = locale
+        engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "translation")
+    }
+
     private fun cancelListening() {
         speechRecognizer?.cancel()
         viewModel.reset()
@@ -181,6 +196,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         speechRecognizer?.destroy()
+        tts?.shutdown()
     }
 }
 
@@ -191,7 +207,8 @@ fun TranslatorApp(
     voiceLevel: Float,
     partialText: String,
     onMicClick: () -> Unit,
-    onCancelListening: () -> Unit
+    onCancelListening: () -> Unit,
+    onSpeak: (String, String) -> Unit
 ) {
     val state       by viewModel.state.collectAsStateWithLifecycle()
     val showHistory by viewModel.showHistory.collectAsStateWithLifecycle()
@@ -235,6 +252,7 @@ fun TranslatorApp(
                     partialText  = partialText,
                     onMicClick   = onMicClick,
                     onCancel     = onCancelListening,
+                    onSpeak      = onSpeak,
                     onTextChange = { viewModel.setInputText(it) },
                     onTranslate  = { viewModel.translateFromText() },
                     onToggleMode = { viewModel.toggleInputMode() },
@@ -258,6 +276,7 @@ fun MainScreen(
     partialText: String,
     onMicClick: () -> Unit,
     onCancel: () -> Unit,
+    onSpeak: (String, String) -> Unit,
     onTextChange: (String) -> Unit,
     onTranslate: () -> Unit,
     onToggleMode: () -> Unit,
@@ -281,7 +300,7 @@ fun MainScreen(
 
             is TranslatorState.Listening -> ListeningScreen(from, voiceLevel, partialText, onCancel)
             is TranslatorState.Loading   -> LoadingScreen(from, to)
-            is TranslatorState.Success   -> SuccessScreen(s.original, s.translated, from, to, s.savedToHistory, onReset)
+            is TranslatorState.Success   -> SuccessScreen(s.original, s.translated, from, to, s.savedToHistory, { onSpeak(s.translated, to) }, onReset)
             is TranslatorState.Error     -> ErrorScreen(s.message, s.canRetry, onReset)
         }
     }
@@ -591,8 +610,12 @@ fun SuccessScreen(
     from: String,
     to: String,
     savedToHistory: Boolean,
+    onSpeak: () -> Unit,
     onReset: () -> Unit
 ) {
+    // Habla la traducción automáticamente al mostrarla
+    LaunchedEffect(translated) { onSpeak() }
+
     val listState = rememberScalingLazyListState()
     // Ajusta el tamaño de letra a la longitud para que frases cortas se lean de un vistazo
     val resultSize = when {
@@ -648,6 +671,9 @@ fun SuccessScreen(
                         textAlign = TextAlign.Center
                     )
                 }
+            }
+            item {
+                PillButton("Escuchar", onClick = onSpeak, filled = false, modifier = Modifier.fillMaxWidth())
             }
             item {
                 PillButton("Nueva", onClick = onReset, modifier = Modifier.fillMaxWidth())

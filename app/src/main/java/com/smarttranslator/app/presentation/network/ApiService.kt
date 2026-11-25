@@ -25,7 +25,9 @@ data class TranslationData(
 
 data class TranslateResponse(
     val success: Boolean,
-    val data: TranslationData?
+    val data: TranslationData?,
+    /** false si la traducción funcionó pero no se pudo guardar en la BD */
+    val saved: Boolean = true
 )
 
 data class HistoryResponse(

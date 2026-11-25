@@ -26,6 +26,19 @@ app.get('/', (req, res) => {
   });
 });
 
+// ── Health check con estado de la base de datos ─────────────
+app.get('/api/health', async (req, res) => {
+  const supabase = require('./config/supabase');
+  let database = 'ok';
+  try {
+    const { error } = await supabase.from('translations').select('id', { head: true, count: 'exact' });
+    if (error) database = `error: ${error.message}`;
+  } catch (e) {
+    database = `error: ${e.message}`;
+  }
+  res.json({ server: 'ok', database, deepl: process.env.DEEPL_API_KEY ? 'configurada' : 'falta key' });
+});
+
 // ── Manejo de rutas no encontradas ───────────────────────────
 app.use((req, res) => {
   res.status(404).json({

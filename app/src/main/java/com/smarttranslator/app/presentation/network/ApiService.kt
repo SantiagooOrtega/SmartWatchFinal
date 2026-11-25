@@ -48,27 +48,30 @@ interface ApiService {
 // ── Singleton Retrofit ────────────────────────────────────────
 
 object RetrofitClient {
-    // Usamos IP directa porque el emulador Wear OS no resuelve DNS externos
-    private const val BASE_URL = "https://18.229.248.167/"
-    private const val NGROK_HOST = "capably-professor-effective.ngrok-free.dev"
+    /**
+     * URL del backend.
+     *  - Reloj real en la misma Wi-Fi: http://<IP de tu Mac>:3000/   (ver `ipconfig getifaddr en0`)
+     *  - Emulador: http://10.0.2.2:3000/
+     *  - Fuera de casa: tu URL pública de ngrok (https://xxxx.ngrok-free.dev/)
+     */
+    private const val BASE_URL = "http://192.168.0.26:3000/"
 
     val instance: ApiService by lazy {
         val logging = okhttp3.logging.HttpLoggingInterceptor().apply {
-            level = okhttp3.logging.HttpLoggingInterceptor.Level.BODY
+            level = okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
         }
         val client = okhttp3.OkHttpClient.Builder()
             .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .addHeader("ngrok-skip-browser-warning", "true")
-                    .addHeader("User-Agent", "SmartTranslator/1.0")
-                    .addHeader("Host", NGROK_HOST)
-                    .build()
-                chain.proceed(request)
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .addHeader("ngrok-skip-browser-warning", "true")
+                        .addHeader("User-Agent", "SmartTranslator/1.0")
+                        .build()
+                )
             }
             .addInterceptor(logging)
-            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .hostnameVerifier { _, _ -> true }
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
             .build()
 
         Retrofit.Builder()

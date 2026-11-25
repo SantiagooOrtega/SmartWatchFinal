@@ -862,3 +862,16 @@ fun HistoryIcon(size: Dp, color: Color) {
         drawLine(color, center, Offset(w * 0.68f, center.y + w * 0.1f), stroke, StrokeCap.Round)
     }
 }
+
+@Composable
+fun SwapIcon(size: Dp, color: Color) {
+    Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val s = w * 0.11f
+        drawLine(color, Offset(w * 0.1f, h * 0.32f), Offset(w * 0.9f, h * 0.32f), s, StrokeCap.Round)
+        drawLine(color, Offset(w * 0.9f, h * 0.32f), Offset(w * 0.7f, h * 0.12f), s, StrokeCap.Round)
+        drawLine(color, Offset(w * 0.9f, h * 0.68f), Offset(w * 0.1f, h * 0.68f), s, StrokeCap.Round)
+        drawLine(color, Offset(w * 0.1f, h * 0.68f), Offset(w * 0.3f, h * 0.88f), s, StrokeCap.Round)
+    }
+}

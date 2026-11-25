@@ -521,45 +521,15 @@ fun ListeningScreen(from: String, voiceLevel: Float, partialText: String, onCanc
 
 // ── Cargando ──────────────────────────────────────────────────
 @Composable
-fun LoadingScreen() {
-    val inf = rememberInfiniteTransition(label = "l")
-    val rotation by inf.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)),
-        label = "rot"
-    )
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(AppColors.Surface)
-                .border(
-                    width = 2.dp,
-                    brush = Brush.sweepGradient(
-                        listOf(Color.Transparent, AppColors.AccentBlue)
-                    ),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "ES",
-                color = AppColors.AccentBlue,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
+fun LoadingScreen(from: String, to: String) {
+    ScreenScaffold {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(modifier = Modifier.size(80.dp), strokeWidth = 4.dp)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("$from → $to", color = AppColors.AccentBlue, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("Traduciendo", color = AppColors.TextSecondary, fontSize = 10.sp)
+            }
         }
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = "Traduciendo...",
-            color = AppColors.TextSecondary,
-            fontSize = 12.sp
-        )
     }
 }
 

@@ -237,6 +237,26 @@ fun MainScreen(
     }
 }
 
+// ── Selector de idioma (chip) ─────────────────────────────────
+@Composable
+fun LangChip(from: String, to: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .heightIn(min = 36.dp)
+            .clip(RoundedCornerShape(50))
+            .background(AppColors.Surface)
+            .border(1.dp, AppColors.AccentBlue.copy(alpha = 0.6f), RoundedCornerShape(50))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(from, color = AppColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        SwapIcon(14.dp, AppColors.AccentBlue)
+        Text(to, color = AppColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
 // ── Pantalla Voz ──────────────────────────────────────────────
 @Composable
 fun VoiceScreen(

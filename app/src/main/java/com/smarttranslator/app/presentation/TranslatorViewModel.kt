@@ -56,6 +56,9 @@ class TranslatorViewModel : ViewModel() {
 
     private val _isLoadingHistory = MutableStateFlow(false)
     val isLoadingHistory: StateFlow<Boolean> = _isLoadingHistory.asStateFlow()
+    fun showError(message: String, canRetry: Boolean = true) {
+        _state.value = TranslatorState.Error(message, canRetry)
+    }
 
     // ── Acciones ──────────────────────────────────────────────
 

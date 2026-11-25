@@ -467,48 +467,55 @@ fun TextScreen(
 
 // ── Escuchando ────────────────────────────────────────────────
 @Composable
-fun ListeningScreen() {
+fun ListeningScreen(from: String, voiceLevel: Float, partialText: String, onCancel: () -> Unit) {
+    val level by animateFloatAsState(voiceLevel, tween(120), label = "lvl")
     val inf = rememberInfiniteTransition(label = "p")
-    val pulse by inf.animateFloat(
-        initialValue = 0.9f, targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse),
-        label = "pulse"
+    val breathe by inf.animateFloat(
+        initialValue = 0.96f, targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
+        label = "breathe"
     )
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .scale(pulse)
-                .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(listOf(Color(0xFF1A6B35), Color(0xFF0A3018)))
-                )
-                .border(
-                    1.5.dp,
-                    Brush.linearGradient(listOf(Color(0xFF30D158), Color(0xFF1A8038))),
-                    CircleShape
-                ),
-            contentAlignment = Alignment.Center
+
+    ScreenScaffold {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            WaveIcon(size = 26.dp, color = Color.White)
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(96.dp)) {
+                // Halo que crece con la voz
+                Box(
+                    Modifier
+                        .size(96.dp)
+                        .scale(0.75f + level * 0.25f)
+                        .clip(CircleShape)
+                        .background(AppColors.AccentGreen.copy(alpha = 0.18f + level * 0.2f))
+                )
+                Box(
+                    modifier = Modifier
+                        .size(68.dp)
+                        .scale(breathe)
+                        .clip(CircleShape)
+                        .background(Brush.radialGradient(listOf(Color(0xFF34C759), Color(0xFF1A7A36))))
+                        .clickable(onClick = onCancel),
+                    contentAlignment = Alignment.Center
+                ) {
+                    WaveIcon(size = 30.dp, color = Color.White, level = level)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = partialText.ifEmpty { if (from == "ES") "Habla en español…" else "Speak in English…" },
+                color = if (partialText.isEmpty()) AppColors.AccentGreen else AppColors.TextPrimary,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.height(2.dp))
+            Text("Toca para cancelar", color = AppColors.TextHint, fontSize = 10.sp)
         }
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = "Escuchando",
-            color = AppColors.AccentGreen,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Habla en español",
-            color = AppColors.TextSecondary,
-            fontSize = 10.sp
-        )
     }
 }
 

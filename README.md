@@ -198,3 +198,10 @@ Aplicación para Smartwatches (Wear OS)
 4. Seleccionar el reloj y presionar **Run**.
 5. En el computador: `cd backend && npm start`.
 6. En `ApiService.kt`, `BASE_URL` debe ser `http://<IP del computador>:3000/` (`ipconfig getifaddr en0` en macOS).
+
+## 🩺 Solución de problemas
+
+- Verificar el estado del backend: `curl http://localhost:3000/api/health`
+- `fetch failed` en Supabase: el proyecto puede estar pausado; restaurarlo en supabase.com y ejecutar `backend/database/schema.sql`.
+- Si la BD falla, la traducción igual se muestra pero no se guarda en el historial.
+- Si el reloj no conecta, permitir conexiones entrantes a Node en el firewall de macOS.

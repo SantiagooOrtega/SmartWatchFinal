@@ -81,9 +81,16 @@ class MainActivity : ComponentActivity() {
     private val viewModel: TranslatorViewModel by viewModels()
     private var speechRecognizer: SpeechRecognizer? = null
 
+    /** Nivel de voz normalizado 0..1, para animar la pantalla "Escuchando". */
+    private val voiceLevel = mutableFloatStateOf(0f)
+    private val partialText = mutableStateOf("")
+
     private val requestPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) startVoiceListening() }
+    ) { granted ->
+        if (granted) startVoiceListening()
+        else viewModel.showError("Permiso de micrófono denegado", canRetry = false)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,7 +98,10 @@ class MainActivity : ComponentActivity() {
             SmartTranslatorTheme {
                 TranslatorApp(
                     viewModel = viewModel,
-                    onMicClick = { checkAndStartListening() }
+                    voiceLevel = voiceLevel.floatValue,
+                    partialText = partialText.value,
+                    onMicClick = { checkAndStartListening() },
+                    onCancelListening = { cancelListening() }
                 )
             }
         }
@@ -104,35 +114,65 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startVoiceListening() {
-        vibrate(50)
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            viewModel.showError("Reconocimiento de voz no disponible. Usa texto.", canRetry = false)
+            return
+        }
+        vibrate(40)
+        partialText.value = ""
+        voiceLevel.floatValue = 0f
         viewModel.setListening()
         speechRecognizer?.destroy()
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+        val lang = if (viewModel.langDirection.value == LangDirection.ES_EN) "es-ES" else "en-US"
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES")
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         }
         speechRecognizer?.setRecognitionListener(object : RecognitionListener {
             override fun onResults(results: Bundle?) {
                 val text = results
                     ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     ?.firstOrNull() ?: ""
+                vibrate(30)
                 viewModel.translate(text)
             }
-            override fun onError(error: Int) { viewModel.reset() }
+            override fun onPartialResults(partialResults: Bundle?) {
+                partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull()?.let { partialText.value = it }
+            }
+            override fun onRmsChanged(rmsdB: Float) {
+                // rmsdB va aprox. de -2 a 10
+                voiceLevel.floatValue = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f)
+            }
+            override fun onError(error: Int) {
+                val msg = when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH,
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No te escuché bien"
+                    SpeechRecognizer.ERROR_NETWORK,
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Sin red para reconocer voz"
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Falta permiso de micrófono"
+                    SpeechRecognizer.ERROR_CLIENT -> null // cancelado por el usuario
+                    else -> "Error de voz ($error)"
+                }
+                if (msg == null) viewModel.reset() else viewModel.showError(msg, canRetry = true)
+            }
             override fun onReadyForSpeech(params: Bundle?) {}
             override fun onBeginningOfSpeech() {}
-            override fun onRmsChanged(rmsdB: Float) {}
             override fun onBufferReceived(buffer: ByteArray?) {}
-            override fun onEndOfSpeech() {}
-            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEndOfSpeech() { voiceLevel.floatValue = 0f }
             override fun onEvent(eventType: Int, params: Bundle?) {}
         })
         speechRecognizer?.startListening(intent)
     }
 
-    @Suppress("DEPRECATION")
+    private fun cancelListening() {
+        speechRecognizer?.cancel()
+        viewModel.reset()
+    }
+
     private fun vibrate(ms: Long) {
         getSystemService(Vibrator::class.java)
             ?.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))

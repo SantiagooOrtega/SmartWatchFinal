@@ -384,135 +384,84 @@ fun VoiceScreen(
 @Composable
 fun TextScreen(
     text: String,
+    from: String,
+    to: String,
     onTextChange: (String) -> Unit,
     onTranslate: () -> Unit,
     onToggleMode: () -> Unit,
     onToggleLang: () -> Unit,
-    onHistory: () -> Unit,
-    langLabel: String
+    onHistory: () -> Unit
 ) {
-    // Launcher para RemoteInput nativo de Wear OS
     val inputKey = "text_input"
+    val inputHint = if (from == "ES") "Escribe en español…" else "Write in English…"
+
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val bundle = RemoteInput.getResultsFromIntent(result.data ?: return@rememberLauncherForActivityResult)
-        val captured = bundle?.getCharSequence(inputKey)?.toString() ?: return@rememberLauncherForActivityResult
+        val data = result.data ?: return@rememberLauncherForActivityResult
+        val captured = RemoteInput.getResultsFromIntent(data)
+            ?.getCharSequence(inputKey)?.toString() ?: return@rememberLauncherForActivityResult
         onTextChange(captured)
     }
 
     fun openKeyboard() {
-        val remoteInput = RemoteInput.Builder(inputKey)
-            .setLabel("Escribe en español...")
-            .build()
+        val remoteInput = RemoteInput.Builder(inputKey).setLabel(inputHint).build()
         val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
         RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
         launcher.launch(intent)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Toggle idioma
-        Text(
-            text = langLabel,
-            color = AppColors.AccentBlue,
-            fontSize = 10.sp,
-            letterSpacing = 0.5.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(AppColors.Surface)
-                .border(1.dp, AppColors.AccentBlue.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                .clickable { onToggleLang() }
-                .padding(horizontal = 12.dp, vertical = 3.dp)
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        // Botón para abrir teclado nativo
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(AppColors.Surface)
-                .border(
-                    width = 1.dp,
-                    color = if (text.isNotEmpty()) AppColors.AccentBlue else AppColors.GlassStroke,
-                    shape = RoundedCornerShape(12.dp)
+    val listState = rememberScalingLazyListState()
+    ScreenScaffold(scrollState = listState) { contentPadding ->
+        ScalingLazyColumn(
+            state = listState,
+            contentPadding = contentPadding,
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            item { LangChip(from, to, onToggleLang) }
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(AppColors.Surface)
+                        .border(
+                            1.dp,
+                            if (text.isNotEmpty()) AppColors.AccentBlue else AppColors.GlassStroke,
+                            RoundedCornerShape(18.dp)
+                        )
+                        .clickable { openKeyboard() }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = text.ifEmpty { inputHint },
+                        color = if (text.isEmpty()) AppColors.TextHint else AppColors.TextPrimary,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            item {
+                PillButton(
+                    label = "Traducir",
+                    onClick = onTranslate,
+                    enabled = text.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
                 )
-                .clickable { openKeyboard() }
-                .padding(horizontal = 10.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = if (text.isEmpty()) "Toca para escribir..." else text,
-                color = if (text.isEmpty()) AppColors.TextTertiary else AppColors.TextPrimary,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    RoundIconButton("Voz", onToggleMode) { MicIcon(20.dp, AppColors.TextPrimary) }
+                    RoundIconButton("Historial", onHistory) { HistoryIcon(20.dp, AppColors.TextPrimary) }
+                }
+            }
         }
-
-        Spacer(Modifier.height(8.dp))
-
-        // Botón traducir
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    if (text.isNotEmpty())
-                        Brush.horizontalGradient(listOf(Color(0xFF0A84FF), Color(0xFF0050C8)))
-                    else
-                        Brush.horizontalGradient(listOf(AppColors.Surface, AppColors.Surface))
-                )
-                .clickable { if (text.isNotEmpty()) onTranslate() }
-                .padding(vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Traducir",
-                color = if (text.isNotEmpty()) Color.White else AppColors.TextTertiary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SmallActionButton(label = "Voz", onClick = onToggleMode)
-            SmallActionButton(label = "Historial", onClick = onHistory)
-        }
-    }
-}
-
-// ── Botón acción pequeño ──────────────────────────────────────
-@Composable
-fun SmallActionButton(label: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(AppColors.Surface)
-            .border(1.dp, AppColors.GlassStroke, RoundedCornerShape(20.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 5.dp)
-    ) {
-        Text(
-            text = label,
-            color = AppColors.AccentBlue,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium
-        )
     }
 }
 

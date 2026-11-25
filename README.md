@@ -4,6 +4,12 @@ Aplicación de traducción en tiempo real de **Español a Inglés** para disposi
 
 ---
 
+## 🎥 Video explicativo
+
+▶️ [Ver video en Google Drive](https://drive.google.com/file/d/1xah2k5CHYw_ZBqVizRTl8EErYmNJtsJT/view?usp=sharing)
+
+---
+
 ## 📱 Vista previa
 
 | Pantalla Splash | Pantalla Principal | Resultado | Historial |

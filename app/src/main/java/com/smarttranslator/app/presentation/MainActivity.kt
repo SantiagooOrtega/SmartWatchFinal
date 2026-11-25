@@ -533,78 +533,75 @@ fun LoadingScreen(from: String, to: String) {
     }
 }
 
-// ── Resultado ─────────────────────────────────────────────────
+// ── Resultado (desplazable con la corona) ─────────────────────
 @Composable
-fun SuccessScreen(original: String, translated: String, onReset: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Original
-        Text(
-            text = original,
-            color = AppColors.TextSecondary,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth()
-        )
+fun SuccessScreen(
+    original: String,
+    translated: String,
+    from: String,
+    to: String,
+    savedToHistory: Boolean,
+    onReset: () -> Unit
+) {
+    val listState = rememberScalingLazyListState()
+    // Ajusta el tamaño de letra a la longitud para que frases cortas se lean de un vistazo
+    val resultSize = when {
+        translated.length < 25 -> 20.sp
+        translated.length < 60 -> 17.sp
+        else -> 15.sp
+    }
 
-        Spacer(Modifier.height(6.dp))
-
-        // Card resultado con gradiente
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        listOf(Color(0xFF0D2B52), Color(0xFF071428))
+    ScreenScaffold(scrollState = listState) { contentPadding ->
+        ScalingLazyColumn(
+            state = listState,
+            contentPadding = contentPadding,
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            item {
+                Text(
+                    text = "$from  ·  $original",
+                    color = AppColors.TextSecondary,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Brush.verticalGradient(listOf(Color(0xFF123A6E), Color(0xFF0A1F3D))))
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(to, color = AppColors.AccentBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = translated,
+                        color = Color.White,
+                        fontSize = resultSize,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        lineHeight = resultSize * 1.2f
                     )
-                )
-                .border(
-                    width = 1.dp,
-                    brush = Brush.linearGradient(
-                        listOf(Color(0xFF1A5299), Color(0xFF0A2952))
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = translated,
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                lineHeight = 22.sp,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        // Botón nueva traducción
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(AppColors.Surface)
-                .border(1.dp, AppColors.GlassStroke, RoundedCornerShape(20.dp))
-                .clickable { onReset() }
-                .padding(horizontal = 18.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = "Nueva traducción",
-                color = AppColors.AccentBlue,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium
-            )
+                }
+            }
+            if (!savedToHistory) {
+                item {
+                    Text(
+                        "No se guardó en el historial",
+                        color = AppColors.TextHint,
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            item {
+                PillButton("Nueva", onClick = onReset, modifier = Modifier.fillMaxWidth())
+            }
         }
     }
 }

@@ -648,81 +648,45 @@ fun ErrorScreen(message: String, canRetry: Boolean, onRetry: () -> Unit) {
 // ── Historial ─────────────────────────────────────────────────
 @Composable
 fun HistoryScreen(
-    history: List<com.smarttranslator.app.presentation.network.TranslationData>,
+    history: List<TranslationData>,
     isLoading: Boolean,
+    error: String?,
+    onRetry: () -> Unit,
     onClose: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.Background)
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(16.dp))
-
-        // Header
-        Text(
-            text = "Historial",
-            color = AppColors.TextPrimary,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        when {
-            isLoading -> Box(Modifier.weight(1f), Alignment.Center) {
-                Text("Cargando...", color = AppColors.TextSecondary, fontSize = 11.sp)
+    val listState = rememberScalingLazyListState()
+    ScreenScaffold(scrollState = listState) { contentPadding ->
+        ScalingLazyColumn(
+            state = listState,
+            contentPadding = contentPadding,
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            item {
+                Text("Historial", color = AppColors.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
-            history.isEmpty() -> Box(Modifier.weight(1f), Alignment.Center) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(AppColors.Surface),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("0", color = AppColors.TextSecondary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            when {
+                isLoading -> item {
+                    CircularProgressIndicator(modifier = Modifier.size(36.dp).padding(top = 8.dp))
+                }
+                error != null -> {
+                    item {
+                        Text(error, color = AppColors.Destructive, fontSize = 12.sp, textAlign = TextAlign.Center)
                     }
+                    item { PillButton("Reintentar", onRetry, filled = false) }
+                }
+                history.isEmpty() -> item {
                     Text(
-                        text = "Sin traducciones",
+                        "Aún no hay traducciones",
                         color = AppColors.TextSecondary,
-                        fontSize = 11.sp
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
                     )
                 }
+                else -> items(history, key = { it.id }) { HistoryCard(it) }
             }
-            else -> LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                contentPadding = PaddingValues(bottom = 8.dp)
-            ) {
-                items(history) { HistoryCard(it) }
-            }
-        }
-
-        Spacer(Modifier.height(6.dp))
-
-        // Botón volver
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(AppColors.Surface)
-                .border(1.dp, AppColors.GlassStroke, RoundedCornerShape(20.dp))
-                .clickable { onClose() }
-                .padding(horizontal = 20.dp, vertical = 5.dp)
-                .padding(bottom = 8.dp)
-        ) {
-            Text(
-                text = "Volver",
-                color = AppColors.AccentBlue,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium
-            )
+            item { PillButton("Volver", onClose, filled = false, modifier = Modifier.padding(top = 4.dp)) }
         }
     }
 }

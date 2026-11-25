@@ -831,3 +831,23 @@ fun WaveIcon(size: Dp, color: Color, level: Float = 0.5f) {
         }
     }
 }
+
+@Composable
+fun KeyboardIcon(size: Dp, color: Color) {
+    Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(0f, h * 0.2f),
+            size = Size(w, h * 0.6f),
+            cornerRadius = CornerRadius(w * 0.12f),
+            style = Stroke(w * 0.08f)
+        )
+        val r = w * 0.05f
+        for (row in 0..1) for (col in 0..3) {
+            drawCircle(color, r, Offset(w * (0.2f + col * 0.2f), h * (0.38f + row * 0.14f)))
+        }
+        drawLine(color, Offset(w * 0.3f, h * 0.66f), Offset(w * 0.7f, h * 0.66f), w * 0.08f, StrokeCap.Round)
+    }
+}

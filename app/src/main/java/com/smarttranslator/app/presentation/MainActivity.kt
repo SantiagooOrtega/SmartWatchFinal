@@ -609,49 +609,38 @@ fun SuccessScreen(
 // ── Error ─────────────────────────────────────────────────────
 @Composable
 fun ErrorScreen(message: String, canRetry: Boolean, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF2C0A0A))
-                .border(1.dp, AppColors.Destructive.copy(alpha = 0.5f), CircleShape),
-            contentAlignment = Alignment.Center
+    ScreenScaffold {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 26.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("!", color = AppColors.Destructive, fontSize = 24.sp, fontWeight = FontWeight.Black)
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = message,
-            color = AppColors.Destructive,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            modifier = Modifier.fillMaxWidth()
-        )
-        if (canRetry) {
-            Spacer(Modifier.height(8.dp))
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(AppColors.Surface)
-                    .border(1.dp, AppColors.Destructive.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
-                    .clickable { onRetry() }
-                    .padding(horizontal = 16.dp, vertical = 5.dp)
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(AppColors.Destructive.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Reintentar",
-                    color = AppColors.Destructive,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Text("!", color = AppColors.Destructive, fontSize = 22.sp, fontWeight = FontWeight.Black)
             }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = message,
+                color = AppColors.TextPrimary,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(10.dp))
+            PillButton(
+                label = if (canRetry) "Reintentar" else "Volver",
+                onClick = onRetry,
+                filled = false,
+                color = if (canRetry) AppColors.Destructive else AppColors.AccentBlue
+            )
         }
     }
 }

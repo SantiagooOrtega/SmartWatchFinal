@@ -317,83 +317,65 @@ fun PillButton(
 // ── Pantalla Voz ──────────────────────────────────────────────
 @Composable
 fun VoiceScreen(
+    from: String,
+    to: String,
     onMicClick: () -> Unit,
     onToggleMode: () -> Unit,
     onToggleLang: () -> Unit,
-    onHistory: () -> Unit,
-    langLabel: String
+    onHistory: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Toggle de idioma
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(AppColors.Surface)
-                .border(1.dp, AppColors.AccentBlue.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                .clickable { onToggleLang() }
-                .padding(horizontal = 14.dp, vertical = 4.dp)
+    val inf = rememberInfiniteTransition(label = "idle")
+    val glow by inf.animateFloat(
+        initialValue = 0.25f, targetValue = 0.55f,
+        animationSpec = infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "glow"
+    )
+
+    ScreenScaffold {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = langLabel,
-                color = AppColors.AccentBlue,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp
-            )
-        }
+            Spacer(Modifier.height(14.dp)) // espacio para la hora
+            LangChip(from, to, onToggleLang)
+            Spacer(Modifier.height(10.dp))
 
-        Spacer(Modifier.height(12.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                RoundIconButton("Texto", onToggleMode) { KeyboardIcon(20.dp, AppColors.TextPrimary) }
 
-        // Botón micrófono vectorial
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(
-                        listOf(Color(0xFF1A5CCC), Color(0xFF003080))
+                // Micrófono principal con halo
+                Box(contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier
+                            .size(84.dp)
+                            .clip(CircleShape)
+                            .background(AppColors.AccentBlue.copy(alpha = glow * 0.35f))
                     )
-                )
-                .border(
-                    width = 1.5.dp,
-                    brush = Brush.linearGradient(listOf(Color(0xFF4D9FFF), Color(0xFF0050C8))),
-                    shape = CircleShape
-                )
-                .clickable { onMicClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            MicIcon(size = 30.dp, color = Color.White)
-        }
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(Brush.radialGradient(listOf(Color(0xFF2E7BFF), Color(0xFF0A4FC4))))
+                            .clickable(onClick = onMicClick),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        MicIcon(size = 30.dp, color = Color.White)
+                    }
+                }
 
-        Spacer(Modifier.height(8.dp))
+                RoundIconButton("Historial", onHistory) { HistoryIcon(20.dp, AppColors.TextPrimary) }
+            }
 
-        Text(
-            text = "Hablar",
-            color = AppColors.TextPrimary,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Text(
-            text = "Toca el micrófono",
-            color = AppColors.TextSecondary,
-            fontSize = 9.sp
-        )
-
-        Spacer(Modifier.height(14.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SmallActionButton(label = "Texto", onClick = onToggleMode)
-            SmallActionButton(label = "Historial", onClick = onHistory)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "Toca para hablar",
+                color = AppColors.TextSecondary,
+                fontSize = 12.sp
+            )
         }
     }
 }

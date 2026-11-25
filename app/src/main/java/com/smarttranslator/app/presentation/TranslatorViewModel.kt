@@ -152,6 +152,22 @@ class TranslatorViewModel : ViewModel() {
         }
     }
 
+    fun clearHistory() {
+        _isLoadingHistory.value = true
+        _historyError.value = null
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.instance.clearHistory()
+                if (response.success) _history.value = emptyList()
+                else _historyError.value = "No se pudo borrar el historial"
+            } catch (_: Exception) {
+                _historyError.value = "No se pudo borrar el historial"
+            } finally {
+                _isLoadingHistory.value = false
+            }
+        }
+    }
+
     fun toggleHistory() {
         _showHistory.value = !_showHistory.value
         if (_showHistory.value) loadHistory()

@@ -11,6 +11,9 @@ router.get('/translations', translationController.getAll);
 // GET /api/translations/:id → una traducción por ID
 router.get('/translations/:id', translationController.getById);
 
+// DELETE /api/translations → borrar todo el historial
+router.delete('/translations', translationController.deleteAll);
+
 // DELETE /api/translations/:id → eliminar traducción
 router.delete('/translations/:id', translationController.deleteById);
 

@@ -116,6 +116,24 @@ const translationController = {
   },
 
   /**
+   * DELETE /api/translations
+   * Borra todo el historial
+   */
+  async deleteAll(req, res) {
+    try {
+      const count = await Translation.deleteAll();
+      return res.status(200).json({ success: true, deleted: count });
+    } catch (error) {
+      console.error('Error en deleteAll:', error.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al borrar el historial.',
+        error: error.message,
+      });
+    }
+  },
+
+  /**
    * DELETE /api/translations/:id
    * Elimina una traducción por ID
    */

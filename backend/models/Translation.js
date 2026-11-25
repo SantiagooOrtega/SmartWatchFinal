@@ -58,6 +58,21 @@ const Translation = {
   },
 
   /**
+   * Elimina todas las traducciones
+   * @returns {number} - Cantidad eliminada
+   */
+  async deleteAll() {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .delete()
+      .not('id', 'is', null)
+      .select('id');
+
+    if (error) throw new Error(`Error al borrar historial: ${error.message}`);
+    return data.length;
+  },
+
+  /**
    * Elimina una traducción por su ID
    * @param {string} id - UUID de la traducción
    * @returns {object} - Registro eliminado

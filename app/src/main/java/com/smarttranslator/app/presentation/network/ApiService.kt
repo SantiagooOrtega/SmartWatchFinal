@@ -3,6 +3,7 @@ package com.smarttranslator.app.presentation.network
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 
@@ -36,6 +37,11 @@ data class HistoryResponse(
     val data: List<TranslationData>
 )
 
+data class ClearResponse(
+    val success: Boolean,
+    val deleted: Int = 0
+)
+
 // ── Interface Retrofit ────────────────────────────────────────
 
 interface ApiService {
@@ -45,6 +51,9 @@ interface ApiService {
 
     @GET("api/translations")
     suspend fun getHistory(): HistoryResponse
+
+    @DELETE("api/translations")
+    suspend fun clearHistory(): ClearResponse
 }
 
 // ── Singleton Retrofit ────────────────────────────────────────

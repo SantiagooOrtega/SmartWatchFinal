@@ -240,6 +240,7 @@ fun TranslatorApp(
                     isLoading = isLoading,
                     error     = historyErr,
                     onRetry   = { viewModel.loadHistory() },
+                    onClear   = { viewModel.clearHistory() },
                     onClose   = { viewModel.toggleHistory() }
                 )
             } else {
@@ -719,9 +720,12 @@ fun HistoryScreen(
     isLoading: Boolean,
     error: String?,
     onRetry: () -> Unit,
+    onClear: () -> Unit,
     onClose: () -> Unit
 ) {
     val listState = rememberScalingLazyListState()
+    // Primer toque pide confirmación; el segundo borra
+    var confirmClear by remember { mutableStateOf(false) }
     ScreenScaffold(scrollState = listState) { contentPadding ->
         ScalingLazyColumn(
             state = listState,
@@ -751,7 +755,20 @@ fun HistoryScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-                else -> items(history, key = { it.id }) { HistoryCard(it) }
+                else -> {
+                    items(history, key = { it.id }) { HistoryCard(it) }
+                    item {
+                        PillButton(
+                            label = if (confirmClear) "Confirmar borrado" else "Borrar historial",
+                            onClick = {
+                                if (confirmClear) { onClear(); confirmClear = false } else confirmClear = true
+                            },
+                            filled = confirmClear,
+                            color = AppColors.Destructive,
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                        )
+                    }
+                }
             }
             item { PillButton("Volver", onClose, filled = false, modifier = Modifier.padding(top = 4.dp)) }
         }

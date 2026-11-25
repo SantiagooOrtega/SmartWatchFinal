@@ -20,7 +20,8 @@ sealed class TranslatorState {
     object Loading : TranslatorState()
     data class Success(
         val original: String,
-        val translated: String
+        val translated: String,
+        val savedToHistory: Boolean = true
     ) : TranslatorState()
     data class Error(
         val message: String,
@@ -105,7 +106,8 @@ class TranslatorViewModel : ViewModel() {
                 if (response.success && response.data != null) {
                     _state.value = TranslatorState.Success(
                         original = response.data.original_text,
-                        translated = response.data.translated_text
+                        translated = response.data.translated_text,
+                        savedToHistory = response.saved
                     )
                     _inputText.value = ""
                     if (_showHistory.value) loadHistory()

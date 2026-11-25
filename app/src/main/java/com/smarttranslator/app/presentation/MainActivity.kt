@@ -728,32 +728,32 @@ fun HistoryScreen(
 }
 
 @Composable
-fun HistoryCard(item: com.smarttranslator.app.presentation.network.TranslationData) {
-    Box(
+fun HistoryCard(item: TranslationData) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(AppColors.Surface)
-            .border(1.dp, AppColors.GlassStroke, RoundedCornerShape(12.dp))
-            .padding(horizontal = 10.dp, vertical = 7.dp)
+            .clickable { expanded = !expanded }
+            .padding(horizontal = 14.dp, vertical = 9.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = item.original_text,
-                color = AppColors.TextSecondary,
-                fontSize = 9.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = item.translated_text,
-                color = AppColors.TextPrimary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        Text(
+            text = "${item.source_lang} · ${item.original_text}",
+            color = AppColors.TextSecondary,
+            fontSize = 11.sp,
+            maxLines = if (expanded) Int.MAX_VALUE else 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = item.translated_text,
+            color = AppColors.TextPrimary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = if (expanded) Int.MAX_VALUE else 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

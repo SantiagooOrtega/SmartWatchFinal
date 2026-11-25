@@ -65,11 +65,11 @@ import com.smarttranslator.app.presentation.theme.SmartTranslatorTheme
 // ── Design Tokens ─────────────────────────────────────────────
 object AppColors {
     val Background    = Color(0xFF000000)
-    val Surface       = Color(0xFF1C1C1E)
+    val Surface       = Color(0xFF222224)   // tarjetas estilo watchOS
     val SurfaceHigh   = Color(0xFF2C2C2E)
     val TextPrimary   = Color(0xFFFFFFFF)
-    val TextSecondary = Color(0xFFAEAEB2)
-    val TextHint      = Color(0xFF7C7C80)
+    val TextSecondary = Color(0xFF98989D)   // secondaryLabel
+    val TextHint      = Color(0xFF636366)   // tertiaryLabel
     val AccentBlue    = Color(0xFF0A84FF)
     val AccentBlueDim = Color(0xFF0A3A70)
     val AccentGreen   = Color(0xFF30D158)
@@ -314,7 +314,6 @@ fun LangChip(from: String, to: String, onClick: () -> Unit) {
             .heightIn(min = 36.dp)
             .clip(RoundedCornerShape(50))
             .background(AppColors.Surface)
-            .border(1.dp, AppColors.AccentBlue.copy(alpha = 0.6f), RoundedCornerShape(50))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -363,8 +362,7 @@ fun PillButton(
             .clip(RoundedCornerShape(50))
             .then(
                 if (filled && enabled) Modifier.background(color)
-                else Modifier.background(AppColors.Surface)
-                    .border(1.dp, if (enabled) color.copy(alpha = 0.7f) else AppColors.GlassStroke, RoundedCornerShape(50))
+                else Modifier.background(if (enabled) color.copy(alpha = 0.2f) else AppColors.Surface)
             )
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 20.dp),
@@ -393,13 +391,6 @@ fun VoiceScreen(
     onToggleLang: () -> Unit,
     onHistory: () -> Unit
 ) {
-    val inf = rememberInfiniteTransition(label = "idle")
-    val glow by inf.animateFloat(
-        initialValue = 0.25f, targetValue = 0.55f,
-        animationSpec = infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "glow"
-    )
-
     ScreenScaffold {
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
@@ -419,16 +410,10 @@ fun VoiceScreen(
                 // Micrófono principal con halo
                 Box(contentAlignment = Alignment.Center) {
                     Box(
-                        Modifier
-                            .size(84.dp)
-                            .clip(CircleShape)
-                            .background(AppColors.AccentBlue.copy(alpha = glow * 0.35f))
-                    )
-                    Box(
                         modifier = Modifier
                             .size(70.dp)
                             .clip(CircleShape)
-                            .background(Brush.radialGradient(listOf(Color(0xFF2E7BFF), Color(0xFF0A4FC4))))
+                            .background(AppColors.AccentBlue)
                             .clickable(onClick = onMicClick),
                         contentAlignment = Alignment.Center
                     ) {
@@ -565,7 +550,7 @@ fun ListeningScreen(from: String, voiceLevel: Float, partialText: String, onCanc
                         .size(68.dp)
                         .scale(breathe)
                         .clip(CircleShape)
-                        .background(Brush.radialGradient(listOf(Color(0xFF34C759), Color(0xFF1A7A36))))
+                        .background(AppColors.AccentGreen)
                         .clickable(onClick = onCancel),
                     contentAlignment = Alignment.Center
                 ) {
@@ -646,11 +631,17 @@ fun SuccessScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Brush.verticalGradient(listOf(Color(0xFF123A6E), Color(0xFF0A1F3D))))
+                        .background(AppColors.Surface)
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(to, color = AppColors.AccentBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        if (to == "EN") "INGLÉS" else "ESPAÑOL",
+                        color = AppColors.AccentBlue,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.6.sp
+                    )
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = translated,
@@ -698,7 +689,7 @@ fun ErrorScreen(message: String, canRetry: Boolean, onRetry: () -> Unit) {
                     .background(AppColors.Destructive.copy(alpha = 0.18f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("!", color = AppColors.Destructive, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                ExclamationIcon(22.dp, AppColors.Destructive)
             }
             Spacer(Modifier.height(8.dp))
             Text(
@@ -884,5 +875,15 @@ fun SwapIcon(size: Dp, color: Color) {
         drawLine(color, Offset(w * 0.9f, h * 0.32f), Offset(w * 0.7f, h * 0.12f), s, StrokeCap.Round)
         drawLine(color, Offset(w * 0.9f, h * 0.68f), Offset(w * 0.1f, h * 0.68f), s, StrokeCap.Round)
         drawLine(color, Offset(w * 0.1f, h * 0.68f), Offset(w * 0.3f, h * 0.88f), s, StrokeCap.Round)
+    }
+}
+
+@Composable
+fun ExclamationIcon(size: Dp, color: Color) {
+    Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        drawLine(color, Offset(w / 2, h * 0.12f), Offset(w / 2, h * 0.6f), w * 0.16f, StrokeCap.Round)
+        drawCircle(color, w * 0.09f, Offset(w / 2, h * 0.86f))
     }
 }

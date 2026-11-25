@@ -146,32 +146,43 @@ class MainActivity : ComponentActivity() {
 
 // ── App Root ──────────────────────────────────────────────────
 @Composable
-fun TranslatorApp(viewModel: TranslatorViewModel, onMicClick: () -> Unit) {
+fun TranslatorApp(
+    viewModel: TranslatorViewModel,
+    voiceLevel: Float,
+    partialText: String,
+    onMicClick: () -> Unit,
+    onCancelListening: () -> Unit
+) {
     val state       by viewModel.state.collectAsStateWithLifecycle()
     val showHistory by viewModel.showHistory.collectAsStateWithLifecycle()
     val history     by viewModel.history.collectAsStateWithLifecycle()
     val inputMode   by viewModel.inputMode.collectAsStateWithLifecycle()
     val inputText   by viewModel.inputText.collectAsStateWithLifecycle()
     val isLoading   by viewModel.isLoadingHistory.collectAsStateWithLifecycle()
+    val historyErr  by viewModel.historyError.collectAsStateWithLifecycle()
     val langDir     by viewModel.langDirection.collectAsStateWithLifecycle()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.Background),
-        contentAlignment = Alignment.Center
+    // Botón/gesto "atrás" del reloj: vuelve a la pantalla principal en vez de cerrar la app
+    BackHandler(enabled = showHistory) { viewModel.toggleHistory() }
+    BackHandler(enabled = !showHistory && state !is TranslatorState.Idle) {
+        if (state is TranslatorState.Listening) onCancelListening() else viewModel.reset()
+    }
+
+    AppScaffold(
+        modifier = Modifier.background(AppColors.Background),
+        timeText = { TimeText() }
     ) {
         AnimatedContent(
             targetState = showHistory,
-            transitionSpec = {
-                fadeIn(tween(300)) togetherWith fadeOut(tween(200))
-            },
+            transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(150)) },
             label = "screen"
         ) { isHistory ->
             if (isHistory) {
                 HistoryScreen(
                     history   = history,
                     isLoading = isLoading,
+                    error     = historyErr,
+                    onRetry   = { viewModel.loadHistory() },
                     onClose   = { viewModel.toggleHistory() }
                 )
             } else {
@@ -180,7 +191,10 @@ fun TranslatorApp(viewModel: TranslatorViewModel, onMicClick: () -> Unit) {
                     inputMode    = inputMode,
                     langDir      = langDir,
                     inputText    = inputText,
+                    voiceLevel   = voiceLevel,
+                    partialText  = partialText,
                     onMicClick   = onMicClick,
+                    onCancel     = onCancelListening,
                     onTextChange = { viewModel.setInputText(it) },
                     onTranslate  = { viewModel.translateFromText() },
                     onToggleMode = { viewModel.toggleInputMode() },

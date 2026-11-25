@@ -187,3 +187,14 @@ IDLE → LISTENING → LOADING → SUCCESS
 
 Proyecto Final — Diseño de Interfaces de Software  
 Aplicación para Smartwatches (Wear OS)
+
+---
+
+## ⌚ Instalar en un reloj real (misma red Wi-Fi)
+
+1. En el reloj: **Ajustes → Sistema → Acerca de** → tocar **Número de compilación** 7 veces.
+2. **Opciones de desarrollador** → activar **Depuración ADB** y **Depuración inalámbrica**.
+3. **Depuración inalámbrica → Vincular nuevo dispositivo** y en Android Studio usar **Pair Devices Using Wi-Fi** con el código.
+4. Seleccionar el reloj y presionar **Run**.
+5. En el computador: `cd backend && npm start`.
+6. En `ApiService.kt`, `BASE_URL` debe ser `http://<IP del computador>:3000/` (`ipconfig getifaddr en0` en macOS).

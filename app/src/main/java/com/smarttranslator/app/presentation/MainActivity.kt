@@ -278,6 +278,42 @@ fun RoundIconButton(
     }
 }
 
+// ── Botón ancho tipo píldora ──────────────────────────────────
+@Composable
+fun PillButton(
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    color: Color = AppColors.AccentBlue,
+    filled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(50))
+            .then(
+                if (filled && enabled) Modifier.background(color)
+                else Modifier.background(AppColors.Surface)
+                    .border(1.dp, if (enabled) color.copy(alpha = 0.7f) else AppColors.GlassStroke, RoundedCornerShape(50))
+            )
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = when {
+                !enabled -> AppColors.TextHint
+                filled -> Color.White
+                else -> color
+            },
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
 // ── Pantalla Voz ──────────────────────────────────────────────
 @Composable
 fun VoiceScreen(

@@ -123,6 +123,8 @@ class TranslatorViewModel : ViewModel() {
                 }
             } catch (e: ConnectException) {
                 _state.value = TranslatorState.Error("Sin conexión al servidor")
+            } catch (e: java.net.UnknownHostException) {
+                _state.value = TranslatorState.Error("Sin internet en el reloj")
             } catch (e: SocketTimeoutException) {
                 _state.value = TranslatorState.Error("Tiempo de espera agotado")
             } catch (e: Exception) {

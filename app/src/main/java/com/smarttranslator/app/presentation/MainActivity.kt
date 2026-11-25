@@ -193,14 +193,17 @@ fun TranslatorApp(viewModel: TranslatorViewModel, onMicClick: () -> Unit) {
     }
 }
 
-// ── Pantalla principal — todo centrado para pantalla circular ─
+// ── Pantalla principal ────────────────────────────────────────
 @Composable
 fun MainScreen(
     state: TranslatorState,
     inputMode: InputMode,
     langDir: LangDirection,
     inputText: String,
+    voiceLevel: Float,
+    partialText: String,
     onMicClick: () -> Unit,
+    onCancel: () -> Unit,
     onTextChange: (String) -> Unit,
     onTranslate: () -> Unit,
     onToggleMode: () -> Unit,
@@ -208,31 +211,24 @@ fun MainScreen(
     onHistory: () -> Unit,
     onReset: () -> Unit
 ) {
-    val langLabel = if (langDir == LangDirection.ES_EN) "ES → EN" else "EN → ES"
+    val (from, to) = if (langDir == LangDirection.ES_EN) "ES" to "EN" else "EN" to "ES"
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.Background),
-        contentAlignment = Alignment.Center
-    ) {
-        AnimatedContent(
-            targetState = state to inputMode,
-            transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(200)) },
-            label = "content"
-        ) { (s, mode) ->
-            when (s) {
-                is TranslatorState.Idle ->
-                    if (mode == InputMode.TEXT)
-                        TextScreen(inputText, onTextChange, onTranslate, onToggleMode, onToggleLang, onHistory, langLabel)
-                    else
-                        VoiceScreen(onMicClick, onToggleMode, onToggleLang, onHistory, langLabel)
+    AnimatedContent(
+        targetState = state to inputMode,
+        transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(150)) },
+        label = "content"
+    ) { (s, mode) ->
+        when (s) {
+            is TranslatorState.Idle ->
+                if (mode == InputMode.TEXT)
+                    TextScreen(inputText, from, to, onTextChange, onTranslate, onToggleMode, onToggleLang, onHistory)
+                else
+                    VoiceScreen(from, to, onMicClick, onToggleMode, onToggleLang, onHistory)
 
-                is TranslatorState.Listening -> ListeningScreen()
-                is TranslatorState.Loading   -> LoadingScreen()
-                is TranslatorState.Success   -> SuccessScreen(s.original, s.translated, onReset)
-                is TranslatorState.Error     -> ErrorScreen(s.message, s.canRetry, onReset)
-            }
+            is TranslatorState.Listening -> ListeningScreen(from, voiceLevel, partialText, onCancel)
+            is TranslatorState.Loading   -> LoadingScreen(from, to)
+            is TranslatorState.Success   -> SuccessScreen(s.original, s.translated, from, to, s.savedToHistory, onReset)
+            is TranslatorState.Error     -> ErrorScreen(s.message, s.canRetry, onReset)
         }
     }
 }

@@ -66,12 +66,12 @@ object AppColors {
     val Surface       = Color(0xFF1C1C1E)
     val SurfaceHigh   = Color(0xFF2C2C2E)
     val TextPrimary   = Color(0xFFFFFFFF)
-    val TextSecondary = Color(0xFF8E8E93)
-    val TextTertiary  = Color(0xFF3A3A3C)
+    val TextSecondary = Color(0xFFAEAEB2)
+    val TextHint      = Color(0xFF7C7C80)
     val AccentBlue    = Color(0xFF0A84FF)
+    val AccentBlueDim = Color(0xFF0A3A70)
     val AccentGreen   = Color(0xFF30D158)
     val Destructive   = Color(0xFFFF453A)
-    val Separator     = Color(0xFF2C2C2E)
     val GlassStroke   = Color(0xFF3A3A3C)
 }
 

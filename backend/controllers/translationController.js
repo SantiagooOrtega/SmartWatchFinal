@@ -42,13 +42,25 @@ const translationController = {
 
       const translatedText = deeplResponse.data.translations[0].text;
 
-      // Guardar en Supabase (Model)
-      const savedRecord = await Translation.create(cleanText, translatedText, sourceLang, targetLang);
-
-      return res.status(201).json({
-        success: true,
-        data: savedRecord,
-      });
+      // Guardar en Supabase (Model). Si la BD falla, igual devolvemos la traducción.
+      try {
+        const savedRecord = await Translation.create(cleanText, translatedText, sourceLang, targetLang);
+        return res.status(201).json({ success: true, saved: true, data: savedRecord });
+      } catch (dbError) {
+        console.error('No se pudo guardar en Supabase:', dbError.message);
+        return res.status(200).json({
+          success: true,
+          saved: false,
+          data: {
+            id: `local-${Date.now()}`,
+            original_text: cleanText,
+            translated_text: translatedText,
+            source_lang: sourceLang,
+            target_lang: targetLang,
+            created_at: new Date().toISOString(),
+          },
+        });
+      }
     } catch (error) {
       console.error('Error en translate:', error.message);
       return res.status(500).json({

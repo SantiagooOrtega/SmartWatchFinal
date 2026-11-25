@@ -786,81 +786,47 @@ fun HistoryCard(item: com.smarttranslator.app.presentation.network.TranslationDa
     }
 }
 
-// ── Íconos vectoriales (sin emojis) ──────────────────────────
+// ── Íconos vectoriales ────────────────────────────────────────
 
 @Composable
-fun MicIcon(size: androidx.compose.ui.unit.Dp, color: Color) {
-    androidx.compose.foundation.Canvas(
-        modifier = Modifier.size(size)
-    ) {
+fun MicIcon(size: Dp, color: Color) {
+    Canvas(Modifier.size(size)) {
         val w = this.size.width
         val h = this.size.height
-        val paint = androidx.compose.ui.graphics.Paint().apply {
-            this.color = color
-            strokeWidth = w * 0.08f
-            style = androidx.compose.ui.graphics.PaintingStyle.Stroke
-        }
-        // Cuerpo del micrófono
-        drawContext.canvas.drawRoundRect(
-            left = w * 0.33f, top = h * 0.05f,
-            right = w * 0.67f, bottom = h * 0.62f,
-            radiusX = w * 0.17f, radiusY = h * 0.17f,
-            paint = paint.apply { style = androidx.compose.ui.graphics.PaintingStyle.Fill; this.color = color.copy(alpha = 0.9f) }
+        val stroke = w * 0.09f
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(w * 0.34f, h * 0.04f),
+            size = Size(w * 0.32f, h * 0.56f),
+            cornerRadius = CornerRadius(w * 0.16f)
         )
-        // Arco
-        drawContext.canvas.drawArc(
-            left = w * 0.18f, top = h * 0.30f,
-            right = w * 0.82f, bottom = h * 0.82f,
-            startAngle = 0f, sweepAngle = 180f,
-            useCenter = false,
-            paint = paint.apply { style = androidx.compose.ui.graphics.PaintingStyle.Stroke; this.color = color }
+        drawArc(
+            color = color,
+            startAngle = 0f, sweepAngle = 180f, useCenter = false,
+            topLeft = Offset(w * 0.18f, h * 0.28f),
+            size = Size(w * 0.64f, h * 0.52f),
+            style = Stroke(stroke, cap = StrokeCap.Round)
         )
-        // Línea base
-        drawContext.canvas.drawLine(
-            androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
-            androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.95f),
-            paint
-        )
-        drawContext.canvas.drawLine(
-            androidx.compose.ui.geometry.Offset(w * 0.33f, h * 0.95f),
-            androidx.compose.ui.geometry.Offset(w * 0.67f, h * 0.95f),
-            paint
-        )
+        drawLine(color, Offset(w * 0.5f, h * 0.80f), Offset(w * 0.5f, h * 0.95f), stroke, StrokeCap.Round)
+        drawLine(color, Offset(w * 0.34f, h * 0.95f), Offset(w * 0.66f, h * 0.95f), stroke, StrokeCap.Round)
     }
 }
 
 @Composable
-fun WaveIcon(size: androidx.compose.ui.unit.Dp, color: Color) {
-    androidx.compose.foundation.Canvas(
-        modifier = Modifier.size(size)
-    ) {
+fun WaveIcon(size: Dp, color: Color, level: Float = 0.5f) {
+    Canvas(Modifier.size(size)) {
         val w = this.size.width
         val h = this.size.height
-        val paint = androidx.compose.ui.graphics.Paint().apply {
-            this.color = color
-            strokeWidth = w * 0.09f
-            style = androidx.compose.ui.graphics.PaintingStyle.Stroke
-            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
-        }
-        // 3 líneas de onda
-        val lines = listOf(
-            Pair(0.1f, 0.9f) to Pair(0.25f, 0.75f),
-            Pair(0.2f, 0.8f) to Pair(0.5f, 0.5f),
-            Pair(0.35f, 0.65f) to Pair(0.8f, 0.2f)
-        )
-        val offsets = listOf(
-            0.15f to 0.5f,
-            0.38f to 0.5f,
-            0.62f to 0.5f,
-            0.85f to 0.5f
-        )
-        val heights = listOf(0.3f, 0.6f, 0.9f, 0.5f)
-        offsets.forEachIndexed { i, (x, _) ->
-            val barH = heights[i]
-            drawContext.canvas.drawLine(
-                androidx.compose.ui.geometry.Offset(w * x, h * (0.5f - barH / 2)),
-                androidx.compose.ui.geometry.Offset(w * x, h * (0.5f + barH / 2)),
-                paint
+        val xs = listOf(0.14f, 0.38f, 0.62f, 0.86f)
+        val base = listOf(0.35f, 0.7f, 0.9f, 0.5f)
+        xs.forEachIndexed { i, x ->
+            val barH = (base[i] * (0.4f + level * 0.6f)).coerceAtLeast(0.15f)
+            drawLine(
+                color,
+                Offset(w * x, h * (0.5f - barH / 2)),
+                Offset(w * x, h * (0.5f + barH / 2)),
+                strokeWidth = w * 0.11f,
+                cap = StrokeCap.Round
             )
         }
     }

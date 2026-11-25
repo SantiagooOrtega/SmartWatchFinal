@@ -113,19 +113,10 @@ fun SplashScreen(onFinished: () -> Unit) {
                         .size(58.dp)
                         .scale(logoScale)
                         .clip(CircleShape)
-                        .background(
-                            Brush.radialGradient(
-                                listOf(Color(0xFF1C6DD0), Color(0xFF003A8C))
-                            )
-                        )
-                        .border(
-                            1.5.dp,
-                            Brush.linearGradient(listOf(Color(0xFF5BA4FF), Color(0xFF0050E6))),
-                            CircleShape
-                        ),
+                        .background(AppColors.AccentBlue),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "🌐", fontSize = 26.sp)
+                    SwapIcon(26.dp, Color.White)
                 }
             }
 
@@ -156,16 +147,12 @@ fun SplashScreen(onFinished: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(Color(0xFF0A84FF), Color(0xFF30D158))
-                            )
-                        )
+                        .background(AppColors.Surface)
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                     Text(
                         text = "ES  →  EN",
-                        color = Color.White,
+                        color = AppColors.TextSecondary,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
